@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>40 Hadis - Topishmoqli Interaktiv O'yin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .timer-bar {
+            transition: width 0.1s linear;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 min-h-screen">
+
+    <!-- LOBBY SCREEN -->
+    <div id="lobby-screen" class="w-full max-w-xl glass rounded-3xl p-8 text-center shadow-2xl space-y-6">
+        <div class="inline-block p-4 bg-indigo-600/30 rounded-full mb-2">
+            <i class="fas fa-book-quran text-5xl text-indigo-400"></i>
+        </div>
+        <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-400">
+            40 Hadis - Topishmoqli O'yin
+        </h1>
+        <p class="text-slate-300 text-sm">
+            Tushib qolgan so'zlarni toping! Har bir savolga 5 soniya vaqt beriladi. Tezroq javob bering va yuqori ball to'plang!
+        </p>
+
+        <div class="space-y-4 text-left">
+            <div>
+                <label class="block text-xs text-slate-400 mb-1 font-semibold uppercase">O'quvchi Ismi</label>
+                <input type="text" id="player-name" placeholder="Ismingizni kiriting..." 
+                    class="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl focus:outline-none focus:border-indigo-500 text-white placeholder-slate-500">
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1 font-semibold uppercase">Ishtirokchilar Soni (Demo Botlar)</label>
+                <select id="bot-count" class="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl focus:outline-none focus:border-indigo-500 text-white">
+                    <option value="3">3 ta raqobatchi</option>
+                    <option value="5" selected>5 ta raqobatchi</option>
+                    <option value="10">10 ta raqobatchi</option>
+                </select>
+            </div>
+        </div>
+
+        <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 font-bold rounded-xl text-lg shadow-lg shadow-indigo-500/30 transform active:scale-95 transition">
+            <i class="fas fa-play mr-2"></i> START (O'yinni Boshlash)
+        </button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="w-full max-w-2xl glass rounded-3xl p-6 hidden shadow-2xl relative space-y-6">
+        <!-- Top Bar -->
+        <div class="flex justify-between items-center border-b border-slate-700/50 pb-4">
+            <div>
+                <span class="text-xs text-slate-400 uppercase tracking-wider block">Savol</span>
+                <span id="question-num" class="text-xl font-bold text-indigo-400">1 / 40</span>
+            </div>
+            <div class="text-center">
+                <span class="text-xs text-slate-400 uppercase tracking-wider block">O'yinchi</span>
+                <span id="display-player-name" class="font-semibold text-slate-200">-</span>
+            </div>
+            <div class="text-right">
+                <span class="text-xs text-slate-400 uppercase tracking-wider block">Ball</span>
+                <span id="player-score" class="text-xl font-bold text-emerald-400">0</span>
+            </div>
+        </div>
+[9/23/2026 9:55 PM] AYAM ONAJONIM: <!-- Timer -->
+        <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden relative">
+            <div id="timer-bar" class="bg-gradient-to-r from-indigo-500 to-pink-500 h-full w-full timer-bar"></div>
+        </div>
+
+        <!-- Question Content -->
+        <div class="space-y-4 text-center">
+            <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 shadow-inner">
+                <p id="question-text" class="text-lg md:text-xl font-medium text-slate-100 leading-relaxed">
+                    Savol yuklanmoqda...
+                </p>
+            </div>
+        </div>
+
+        <!-- Answer Options -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="options-container">
+            <!-- Dynamic Options -->
+        </div>
+
+        <!-- Real-time Leaderboard Snippet -->
+        <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span><i class="fas fa-trophy text-yellow-500 mr-1"></i> Yetakchi: <b id="top-player-name" class="text-slate-200">-</b></span>
+            <span>O'rningiz: <b id="player-rank" class="text-indigo-400">-</b></span>
+        </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="result-screen" class="w-full max-w-xl glass rounded-3xl p-8 text-center hidden shadow-2xl space-y-6">
+        <div class="inline-block p-4 bg-yellow-500/20 rounded-full">
+            <i class="fas fa-crown text-5xl text-yellow-400"></i>
+        </div>
+        <h2 class="text-3xl font-extrabold text-white">Natijalar</h2>
+        <p id="winner-announcement" class="text-indigo-300 font-medium"></p>
+
+        <div class="bg-slate-900/80 rounded-2xl p-4 border border-slate-800 space-y-2 text-left max-h-60 overflow-y-auto" id="final-leaderboard">
+            <!-- Leaderboard Items -->
+        </div>
+
+        <button onclick="location.reload()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 font-bold rounded-xl text-lg shadow-lg transform active:scale-95 transition">
+            <i class="fas fa-redo mr-2"></i> Qaytadan O'ynash
+        </button>
+    </div>
+
+    <script>
+        const quizData = [
+            { id: 1, text: "Qaysi bir musulmon farzand savob umidi bilan ertalab ....... ziyorat qilsa, Alloh taolo unga jannatning ikki eshigini ochadi.", correct: "ota-onasini", distractors: ["ustozini", "qo'shnisini", "do'stini"] },
+            { id: 2, text: "Jannat ....... oyog'i ostidadir.", correct: "onalar", distractors: ["otalar", "ustozlar", "olimlar"] },
+            { id: 3, text: "Jamoat bilan o'qilgan namoz yolg'iz o'qilgan namozdan ....... daraja afzaldir.", correct: "yigirma yetti", distractors: ["o'n", "qirq", "yetti"] },
+            { id: 4, text: "Musulmon musulmonning ....... . Unga zulm qilmaydi.", correct: "birodaridir", distractors: ["dushmanidir", "qo'shnisidir", "sherigidir"] },
+            { id: 5, text: "Kishi do'stining ....... . Kim bilan do'stlashayotganiga qarasin.", correct: "dinidadir", distractors: ["yo'lidadir", "uyidadir", "izidadir"] },
+            { id: 6, text: "Kishi ....... bilan birga bo'ladi.", correct: "sevganlari", distractors: ["o'rtoqlari", "qo'shnilari", "qarindoshlari"] },
+            { id: 7, text: "Rasululloh (sav) hadya olar edilar va ....... ham boshqalarga hadya berar edilar.", correct: "o'zlari", distractors: ["sahobalar", "bolalar", "ayollar"] },
+            { id: 8, text: "Musulmonning musulmon zimmasidagi biri: Kasal bo'lganda ....... xabar olishdir.", correct: "haqlaridan", distractors: ["uylaridan", "holidan", "ishidan"] },
+            { id: 9, text: "Qabrlarni ziyorat qilinglar, chunki u sizlarga ....... eslatadi.", correct: "oxiratni", distractors: ["dunyoni", "o'tmishni", "yoshlikni"] },
+            { id: 10, text: "Yaxshilikka ....... kishi, xuddi uni qilgan kabidir.", correct: "dalolat qilgan, yo'llab qo'ygan", distractors: ["amall qilgan", "ism qo'ygan", "qiziqqan"] },
+[9/23/2026 9:55 PM] AYAM ONAJONIM: { id: 11, text: "Qay bir yosh ....... yoshi uchun hurmat qilsa, Alloh unga ham keksaygan chog'ida yoshi uchun uni hurmat qiladigan kishini muhayyo qiladi.", correct: "Keksani", distractors: ["Olimni", "Bemorikini", "Ustozni"] },
+            { id: 12, text: "Alloh aytadi: “....... Men uchun, uning mukofotini O'zim beraman.”", correct: "Ro'za", distractors: ["Namoz", "Zakat", "Haj"] },
+            { id: 13, text: "Kim ro'zadorga ....... qilib bersa, ro'zadorning savobichalik ajr bunga ham yoziladi.", correct: "iftorlik", distractors: ["yordam", "ehson", "sovg'a"] },
+            { id: 14, text: "....... yoying, taom yediring, odamlar uxlaganda namoz o'qing-da, jannatga salomatlik bilan kiravering.", correct: "Salomni", distractors: ["Yaxshilikni", "Mehrni", "Sadaqani"] },
+            { id: 15, text: "Sizlardan birortangiz aksirsa 1) ... desin. Eshitgan kishi 2) ... desa, u ham 'yahdiykumullohu va yuslihu balakum' desin.", correct: "1) alhamdulillah 2) yarhamukalloh", distractors: ["1) subhanallah 2) masahallah", "1) astagfirullah 2) alhamdulillah", "1) bismillah 2) yarhamukalloh"] },
+            { id: 16, text: "Ro'zadorning ikki sevinchi bor: Biri iftor vaqtida. Yana biri ....... yo'liqqan paytida.", correct: "Rabbiga", distractors: ["Dostiga", "Oilasiga", "Jannatga"] },
+            { id: 17, text: "....... oyi kirsa, jannat eshiklari ochiladi. Do'zax eshiklari yopiladi.", correct: "Ramazon", distractors: ["Muharram", "Shabon", "Rabiulavval"] },
+            { id: 18, text: "Taomning barakasi – undan oldin ham va undan keyin ham ....... yuvishdir.", correct: "qo'llarni", distractors: ["og'izni", "yuzni", "idishlarni"] },
+            { id: 19, text: "Qiyomat kuni odamlarning menga eng yaqini ular ichida menga ko'p ....... aytganlaridir.", correct: "salavot", distractors: ["duo", "tasbeh", "sadaqa"] },
+            { id: 20, text: "Taomning yaxshisi ....... bilan baham ko'rilganidir.", correct: "Ko'pchilik", distractors: ["Oila", "Yo'qsillar", "Mehmonlar"] },
+            { id: 21, text: "Mo'minning mo'minga ....... ham sadaqadir.", correct: "tabassumi", distractors: ["yordami", "so'zi", "salomi"] },
+            { id: 22, text: "Qaysi biringiz taom yesa, .......ni aytsin.", correct: "Bismillah", distractors: ["Alhamdulillah", "Salavot", "Duo"] },
+            { id: 23, text: "Kishi hayotida joriy bardavom ....... qilgan bo'lsa, vafotidan keyin ham unga savobi yozilib turadi.", correct: "sadaqa", distractors: ["namoz", "ro'za", "ibodat"] },
+            { id: 24, text: "Odamlar ichida yaxshilik qilishimga kim haqliroq? U Zot (sav): 'Onang, so'ngra onang, so'ngra onang, so'ngra otang,' dedilar.", correct: "yaxshilik", distractors: ["xizmat", "sovg'a", "sadoqat"] },
+            { id: 25, text: "....... roziligi otaning roziligidadir, ....... g'azabi otaning g'azabidadir.", correct: "Allohning", distractors: ["Rassulning", "Ona", "Farishtalarning"] },
+            { id: 26, text: "Agar u bilan janjal qilishsa, ....... deb aytsin.", correct: "Men ro'zadorman", distractors: ["Tinchlik bo'lsin", "Keting yonimdan", "Allohga topshirdim"] },
+            { id: 27, text: "Agar kimdir bir ....... yaxshi ko'rsa, unga yaxshi ko'rishini aytib qo'ysin.", correct: "do'stini", distractors: ["birodarini", "odamni", "kishini"] },
+            { id: 28, text: "Sizlarning yaxshilaringiz .......ni o'rganib, uni boshqalarga ham o'rgatganlaringizdir.", correct: "Qur'on", distractors: ["Hadis", "Ilm", "Odob"] },
+            { id: 29, text: "Sizlarning menga eng sevikligingiz va qiyomat kuni menga eng yaqin joyda bo'ladiganingiz ...... chiroylilaringizdir.", correct: "xulqi", distractors: ["yuzi", "amali", "so'zi"] },
+            { id: 30, text: "Osonlashtiringlar, qiyinlashtirmanglar! Qiziqtiringlar, .......manglar!", correct: "bezdir", distractors: ["qochir", "quv", "korkit"] },
+[9/23/2026 9:55 PM] AYAM ONAJONIM: { id: 31, text: "....... iymondandir.", correct: "Poklik", distractors: ["Sadaqa", "Saxovat", "Sabr"] },
+            { id: 32, text: "Eng mukammal yaxshilik - boshqalarning oldida qilganingni .......da ham qilishingdir.", correct: "tanholik", distractors: ["uydagilik", "xilvatda", "namozda"] },
+            { id: 33, text: "Bergan qo'l olgan qo'ldan .......roqdir.", correct: "yaxshi", distractors: ["baland", "ustun", "kuchli"] },
+            { id: 34, text: "Qaysi bir mo'min o'z do'stiga g'oyibona duo qilsa, bir ....... : 'Senga ham shunday bo'lsin', deb turadi.", correct: "farishta", distractors: ["insom", "do'st", "sahoba"] },
+            { id: 35, text: "....... Allohni ko'rib turgandek Unga ibodat qilishingdur.", correct: "Ehson", distractors: ["Iymon", "Isloom", "Taqvo"] },
+            { id: 36, text: "....... mo’min kishining yo’qotgan narsasidir. Uni qayerdan topsa, olishga haqli.", correct: "Hikmat", distractors: ["Ilm", "Boylik", "Vaqt"] },
+            { id: 37, text: "Kim ilm talabida uyidan chiqsa, u uyiga qaytgunicha .......ning yo'lidadir.", correct: "Alloh", distractors: ["Jannat", "Haqiqat", "Taqdir"] },
+            { id: 38, text: "Mo'min bo'lmaguningizcha 1) ...ga kirolmaysiz, to bir-birlaringizni 2) ... ko'rmaguningizcha mo'min bo'la olmaysiz.", correct: "1) jannat 2) yaxshi", distractors: ["1) kaabaga 2) dost", "1) masjidga 2) hurmat qilmay", "1) jannatga 2) sevmay"] },
+            { id: 39, text: "Uchta duo shak-shubhasiz qabul bo'ladi: mazlumning duosi, ......ning duosi va otaning farzandiga qilgan duosi.", correct: "musofir", distractors: ["bemornig", "etimning", "ustozning"] },
+            { id: 40, text: "Yerdagilarga marhamat qilsangiz, .......dagilar ham sizga marhamat ko'rsatishadi.", correct: "ko'k", distractors: ["osmon", "jannat", "falak"] }
+        ];
+
+        let players = [];
+        let currentQuestionIdx = 0;
+        let timerInterval = null;
+        let startTime = 0;
+        let userHasAnswered = false;
+
+        const botNames = ["Ali", "Vali", "Sardor", "Madina", "Zilola", "Jasur", "Aziz", "Lola", "Bekzod", "Umida"];
+
+        function startGame() {
+            const nameInput = document.getElementById('player-name').value.trim();
+            if (!nameInput) {
+                alert("Iltimos, ismingizni kiriting!");
+                return;
+            }
+
+            const count = parseInt(document.getElementById('bot-count').value);
+            players = [{ name: nameInput, score: 0, isUser: true }];
+
+            for (let i = 0; i < count; i++) {
+                players.push({ name: botNames[i % botNames.length], score: 0, isUser: false });
+            }
+
+            document.getElementById('lobby-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('display-player-name').innerText = nameInput;
+
+            currentQuestionIdx = 0;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIdx >= quizData.length) {
+                endGame();
+                return;
+            }
+
+            userHasAnswered = false;
+            const q = quizData[currentQuestionIdx];
+            document.getElementById('question-num').innerText = ${currentQuestionIdx + 1} / ${quizData.length};
+            document.getElementById('question-text').innerText = q.text;
+
+            // Options mixing
+            let options = [q.correct, ...q.distractors];
+            options.sort(() => Math.random() - 0.5);
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const labels = ['A', 'B', 'C', 'D'];
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+[9/23/2026 9:55 PM] AYAM ONAJONIM: btn.className = "w-full p-4 bg-slate-800/80 hover:bg-indigo-600/50 border border-slate-700/80 rounded-xl text-left font-semibold text-slate-200 transition duration-150 flex items-center space-x-3";
+                btn.onclick = () => selectAnswer(opt, q.correct, btn);
+                btn.innerHTML = <span class="px-3 py-1 bg-indigo-500/20 text-indigo-400 rounded-lg text-sm font-bold">${labels[idx]}</span> <span>${opt}</span>;
+                container.appendChild(btn);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            const timerBar = document.getElementById('timer-bar');
+            timerBar.style.width = '100%';
+            
+            startTime = Date.now();
+            const duration = 5000; // 5 seconds
+
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, duration - elapsed);
+                const percent = (remaining / duration) * 100;
+                timerBar.style.width = ${percent}%;
+
+                if (elapsed >= duration) {
+                    clearInterval(timerInterval);
+                    if (!userHasAnswered) {
+                        processTurn(null, false, 0);
+                    }
+                }
+            }, 50);
+        }
+
+        function selectAnswer(selected, correct, btnElement) {
+            if (userHasAnswered) return;
+            userHasAnswered = true;
+            clearInterval(timerInterval);
+
+            const timeTaken = (Date.now() - startTime) / 1000; // in seconds
+            const isCorrect = (selected === correct);
+
+            // Button styling
+            if (isCorrect) {
+                btnElement.classList.remove('bg-slate-800/80', 'hover:bg-indigo-600/50');
+                btnElement.classList.add('bg-emerald-600', 'text-white');
+            } else {
+                btnElement.classList.remove('bg-slate-800/80', 'hover:bg-indigo-600/50');
+                btnElement.classList.add('bg-rose-600', 'text-white');
+            }
+
+            // Score logic based on speed (max 1000 pts for 0s, down to 500 pts at 5s)
+            let points = 0;
+            if (isCorrect) {
+                points = Math.round(1000 - (timeTaken * 100));
+                if (points < 500) points = 500;
+            }
+
+            processTurn(selected, isCorrect, points);
+        }
+
+        function processTurn(userChoice, isUserCorrect, userPoints) {
+            // Update User Score
+            if (isUserCorrect) {
+                players[0].score += userPoints;
+            }
+            document.getElementById('player-score').innerText = players[0].score;
+
+            // Simulate Bots
+            for (let i = 1; i < players.length; i++) {
+                // Bots have an 70% chance to be correct
+                const botCorrect = Math.random() < 0.7;
+                if (botCorrect) {
+                    const botTime = Math.random() * 4.5; // 0 to 4.5 seconds
+                    const botPoints = Math.round(1000 - (botTime * 100));
+                    players[i].score += Math.max(500, botPoints);
+                }
+            }
+
+            // Rank players
+            players.sort((a, b) => b.score - a.score);
+
+            // Update mini leaderboard
+            const userRank = players.findIndex(p => p.isUser) + 1;
+            document.getElementById('top-player-name').innerText = ${players[0].name} (${players[0].score}pt);
+            document.getElementById('player-rank').innerText = #${userRank};
+
+            // Proceed to next question
+            setTimeout(() => {
+                currentQuestionIdx++;
+                loadQuestion();
+            }, 1200);
+        }
+
+        function endGame() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+[9/23/2026 9:55 PM] AYAM ONAJONIM: players.sort((a, b) => b.score - a.score);
+            const winner = players[0];
+            const userRank = players.findIndex(p => p.isUser) + 1;
+
+            document.getElementById('winner-announcement').innerText = 
+                winner.isUser ? "Tabriklaymiz! Siz g'olib bo'ldingiz! 🎉" : ${winner.name} birinchi o'rinni egalladi!;
+
+            const leaderboardEl = document.getElementById('final-leaderboard');
+            leaderboardEl.innerHTML = '';
+
+            players.forEach((p, idx) => {
+                const item = document.createElement('div');
+                item.className = flex justify-between items-center p-3 rounded-xl text-sm font-semibold ${p.isUser ? 'bg-indigo-600/40 border border-indigo-400' : 'bg-slate-800/50'};
+                item.innerHTML = 
+                    <div class="flex items-center space-x-3">
+                        <span class="w-6 text-center font-bold ${idx === 0 ? 'text-yellow-400' : 'text-slate-400'}">#${idx + 1}</span>
+    <span>${p.name} ${p.isUser ? '(Siz)' : ''}</span>
+                    </div>
+                    <span class="text-emerald-400">${p.score} ball</span>
+                ;
+                leaderboardEl.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>
